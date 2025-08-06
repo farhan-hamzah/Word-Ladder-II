@@ -1,12 +1,42 @@
+from collections import defaultdict, deque
+from typing import List
+
 class Solution:
-    def maxProfit(self, prices: List[int]) -> int:
-        buy1 = buy2 = float('-inf')
-        sell1 = sell2 = 0
+    def findLadders(self, beginWord: str, endWord: str, wordList: List[str]) -> List[List[str]]:
+        wordSet = set(wordList)
+        if endWord not in wordSet:
+            return []
+
+        graph = defaultdict(list)
+        level = {beginWord}
+        found = False
+        visited = set()
         
-        for price in prices:
-            buy1 = max(buy1, -price)           # beli pertama
-            sell1 = max(sell1, buy1 + price)   # jual pertama
-            buy2 = max(buy2, sell1 - price)    # beli kedua
-            sell2 = max(sell2, buy2 + price)   # jual kedua
-        
-        return sell2
+        while level and not found:
+            next_level = set()
+            visited |= level
+            for word in level:
+                for i in range(len(word)):
+                    for c in 'abcdefghijklmnopqrstuvwxyz':
+                        next_word = word[:i] + c + word[i+1:]
+                        if next_word in wordSet and next_word not in visited:
+                            if next_word == endWord:
+                                found = True
+                            next_level.add(next_word)
+                            graph[next_word].append(word)
+            level = next_level
+
+        if not found:
+            return []
+
+        res = []
+
+        def backtrack(word, path):
+            if word == beginWord:
+                res.append(path[::-1])
+                return
+            for prev in graph[word]:
+                backtrack(prev, path + [prev])
+
+        backtrack(endWord, [endWord])
+        return res
